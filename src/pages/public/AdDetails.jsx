@@ -4,67 +4,113 @@
  * It allows users to select dates and see a dynamic price calculation before booking.
  */
 
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { mockAdSpaces } from '../../data/mockData';
-import { MapPin, Calendar, CheckCircle2, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import api from '../../services/api';
+import { MapPin, Calendar, CheckCircle2, ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-/**
- * AdDetails Component:
- * Fetches space data based on the URL parameter 'id' and provides a booking interface.
- */
 export default function AdDetails() {
-    const { id } = useParams(); // Get the ad space ID from the URL path
-    const { user } = useAuth(); // Access the current user session
+    const { id } = useParams();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     
-    // Find the specific ad space object from our mock data
-    const space = mockAdSpaces.find(s => s.id === id);
+    const [space, setSpace] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isBooking, setIsBooking] = useState(false);
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
 
-    // State for dates selected by the user
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    // Error handling: if the ID doesn't match any known space
-    if (!space) {
-        return <div className="container pt-20 text-center"><h2>Ad Space not found</h2></div>;
-    }
+    useEffect(() => {
+        const fetchSpaceDetails = async () => {
+            try {
+                const response = await api.get(`/adspaces/${id}/`);
+                setSpace(response.data);
+            } catch (err) {
+                console.error("Error fetching ad space details:", err);
+                setError("Ad Space not found");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchSpaceDetails();
+    }, [id]);
 
-    /**
-     * calculateTotal: Computes the base cost based on the number of days selected.
-     * @returns {number} The total cost (price per day * number of days).
-     */
+    const handleBook = async () => {
+        if (!startDate || !endDate) return;
+        setIsBooking(true);
+        setError(null);
+        try {
+            await api.post('/bookings/', {
+                adspace: id,
+                start_date: startDate,
+                end_date: endDate
+            });
+            setSuccess(true);
+            setTimeout(() => {
+                navigate('/advertiser/bookings');
+            }, 2000);
+        } catch (err) {
+            console.error("Booking failed:", err);
+            setError(err.response?.data?.detail || "Failed to create booking. Please try again.");
+        } finally {
+            setIsBooking(false);
+        }
+    };
+
     const calculateTotal = () => {
-        if (!startDate || !endDate) return 0;
+        if (!startDate || !endDate || !space) return 0;
         const start = new Date(startDate);
         const end = new Date(endDate);
         const diffTime = Math.abs(end - start);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return (diffDays > 0 ? diffDays : 1) * space.pricePerDay;
+        return (diffDays > 0 ? diffDays : 1) * parseFloat(space.basePricePerDay);
     };
+
+    if (isLoading) {
+        return (
+            <div className="container py-20 flex flex-col items-center justify-center gap-4">
+                <Loader2 size={40} className="animate-spin text-primary" />
+                <p>Loading details...</p>
+            </div>
+        );
+    }
+
+    if (error || !space) {
+        return (
+            <div className="container pt-20 text-center">
+                <h2>{error || "Ad Space not found"}</h2>
+                <Link to="/search" className="btn btn-secondary mt-4">Return to Search</Link>
+            </div>
+        );
+    }
 
     const total = calculateTotal();
 
     return (
         <div className="container animate-fade-in" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-            {/* Back Navigation Button */}
             <Link to="/search" className="btn btn-secondary mb-6" style={{ padding: '0.4rem 0.8rem' }}>
                 <ChevronLeft size={16} /> Back to Search
             </Link>
 
             <div className="grid lg:grid-cols-3 gap-8">
                 
-                {/* Section 1: Main Information (Left/Center Column) */}
                 <div className="lg:col-span-2">
-                    {/* Primary Listing Image */}
-                    <img src={space.image} alt={space.title} style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'var(--radius-lg)' }} className="mb-6 shadow-md" />
+                    <img 
+                        src={`https://images.unsplash.com/photo-1555239962-921cb96f9db1?auto=format&fit=crop&q=80&w=800`} 
+                        alt={space.location} 
+                        style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: 'var(--radius-lg)' }} 
+                        className="mb-6 shadow-md" 
+                    />
 
-                    {/* Title and Badge Info */}
                     <div className="flex justify-between items-start mb-4">
                         <div>
-                            <h1 className="mb-2">{space.title}</h1>
-                            <p className="flex items-center gap-2" style={{ fontSize: '1.125rem' }}>
-                                <MapPin size={18} /> {space.location}
+                            <h1 className="mb-2">{space.location}</h1>
+                            <p className="flex items-center gap-2" style={{ fontSize: '1.125rem', color: 'var(--text-muted)' }}>
+                                <MapPin size={18} /> {space.city}
                             </p>
                         </div>
                         <span className={`badge ${space.type === 'Digital' ? 'badge-info' : 'badge-warning'}`} style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>
@@ -72,52 +118,47 @@ export default function AdDetails() {
                         </span>
                     </div>
 
-                    {/* Technical Specifications Grid */}
                     <div className="card mb-8">
                         <h3 className="mb-4">Space Details</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Format</span>
-                                <strong>1920x1080px</strong>
+                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Dimensions</span>
+                                <strong>{space.width}m x {space.height}m</strong>
                             </div>
                             <div>
-                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Est. Impressions</span>
-                                <strong>1.2M / week</strong>
+                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Est. Footfall</span>
+                                <strong>{(space.footfallEstimate / 1000).toFixed(1)}k / day</strong>
                             </div>
                             <div>
-                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Min. Booking</span>
-                                <strong>{space.minDays} Days</strong>
+                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Status</span>
+                                <strong>{space.availabilityStatus.charAt(0).toUpperCase() + space.availabilityStatus.slice(1)}</strong>
                             </div>
                             <div>
-                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Illumination</span>
-                                <strong>24/7 LED</strong>
+                                <span className="text-muted" style={{ display: 'block', fontSize: '0.875rem' }}>Technology</span>
+                                <strong>{space.type}</strong>
                             </div>
                         </div>
                     </div>
 
-                    {/* Highlighted Features List */}
                     <h3>Features</h3>
                     <ul className="flex-col gap-2 mt-4">
-                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> Prime location with high footfall</li>
-                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> Real-time content updates via cloud</li>
-                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> Performance analytics included</li>
+                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> Prime location in {space.city}</li>
+                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> High visibility to daily commuters</li>
+                        <li className="flex items-center gap-2 text-muted"><CheckCircle2 size={16} className="text-success" /> Professional maintenance included</li>
                     </ul>
                 </div>
 
-                {/* Section 2: Booking Sidebar (Right Column) */}
                 <div>
                     <div className="card" style={{ position: 'sticky', top: '90px' }}>
                         <h3 className="mb-6">Book this Space</h3>
 
-                        {/* Pricing Overview */}
                         <div className="mb-6 pb-6 border-b" style={{ borderBottom: '1px solid var(--border)' }}>
                             <div className="flex items-end gap-1">
-                                <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1 }}>${space.pricePerDay.toLocaleString()}</span>
+                                <span style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1 }}>${parseFloat(space.basePricePerDay).toLocaleString()}</span>
                                 <span className="text-muted">/ day</span>
                             </div>
                         </div>
 
-                        {/* Date Selection Inputs */}
                         <div className="form-group">
                             <label className="form-label">Start Date</label>
                             <div style={{ position: 'relative' }}>
@@ -148,11 +189,24 @@ export default function AdDetails() {
                             </div>
                         </div>
 
-                        {/* Dynamic Billing Breakdown - Shown only when dates are valid */}
+                        {error && (
+                            <div className="flex items-center gap-2 p-3 mb-4 rounded bg-red-100 text-red-700 text-sm" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                <AlertCircle size={16} />
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="flex items-center gap-2 p-3 mb-4 rounded bg-green-100 text-green-700 text-sm" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                                <CheckCircle2 size={16} />
+                                Booking created successfully! Redirecting...
+                            </div>
+                        )}
+
                         {startDate && endDate && total > 0 && (
                             <div className="mb-6 p-4 rounded bg-panel" style={{ borderRadius: 'var(--radius-md)', background: 'var(--bg-panel-hover)' }}>
                                 <div className="flex justify-between mb-2 text-sm text-muted">
-                                    <span>${space.pricePerDay} x {(total / space.pricePerDay)} days</span>
+                                    <span>${parseFloat(space.basePricePerDay)} x {Math.round(total / parseFloat(space.basePricePerDay))} days</span>
                                     <span>${total.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between mb-2 text-sm text-muted">
@@ -166,11 +220,14 @@ export default function AdDetails() {
                             </div>
                         )}
 
-                        {/* Booking CTA Button (Conditional State) */}
                         {user ? (
                             user.role === 'advertiser' ? (
-                                <button className="btn btn-primary w-full" disabled={!startDate || !endDate}>
-                                    Proceed to Payment
+                                <button 
+                                    className="btn btn-primary w-full flex items-center justify-center gap-2" 
+                                    disabled={!startDate || !endDate || isBooking || success}
+                                    onClick={handleBook}
+                                >
+                                    {isBooking ? <Loader2 size={18} className="animate-spin" /> : 'Confirm & Pay'}
                                 </button>
                             ) : (
                                 <button className="btn w-full" style={{ background: 'var(--bg-panel-hover)', color: 'var(--text-muted)', cursor: 'not-allowed' }} disabled>

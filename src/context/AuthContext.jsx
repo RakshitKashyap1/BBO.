@@ -4,44 +4,53 @@
  * This ensures that user data and login/logout functions are available to any component in the app.
  */
 
-import React, { createContext, useContext, useState } from 'react';
-import { mockUsers } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
-// Create a Context object for authentication
 const AuthContext = createContext(undefined);
 
-/**
- * AuthProvider Component:
- * Wraps the application to provide branding and auth state to all children.
- * @param {ReactNode} children - The components that will have access to the auth state.
- */
 export function AuthProvider({ children }) {
-    // State to hold the currently logged-in user object
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    /**
-     * login: Simulates a login process by finding a user with a specific role.
-     * @param {string} role - The role to login as (e.g., 'advertiser', 'owner', 'admin').
-     */
-    const login = (role) => {
-        // In a real app, this would be an API call with credentials
-        const foundUser = mockUsers.find(u => u.role === role);
-        if (foundUser) {
-            setUser(foundUser);
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+        setLoading(false);
+    }, []);
+
+    const login = async (email, password) => {
+        try {
+            const response = await api.post('/auth/login/', { email, password });
+            const { access, refresh, role } = response.data;
+            
+            localStorage.setItem('token', access);
+            localStorage.setItem('refresh_token', refresh);
+            
+            // For now, we'll store basic user info. In a real app, you might fetch profile info.
+            const userInfo = { email, role, name: email.split('@')[0] };
+            setUser(userInfo);
+            localStorage.setItem('user', JSON.stringify(userInfo));
+            return { success: true };
+        } catch (error) {
+            console.error("Login failed:", error);
+            const errorMsg = error.response?.data?.error || error.response?.data?.detail || "Login failed - please check credentials";
+            return { success: false, error: errorMsg };
         }
     };
 
-    /**
-     * logout: Resets the user state to null, effectively logging out of the session.
-     */
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
     };
 
-    // Provide the user state and auth actions to the component tree
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
-            {children}
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
 }

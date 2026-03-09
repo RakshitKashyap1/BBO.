@@ -11,7 +11,7 @@ import { AuthProvider } from './context/AuthContext';
 // Layouts - Wrapper components that provide consistent UI (Header, Footer, Sidebar)
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Pages to import - Actual page content components
 import Home from './pages/public/Home';
@@ -21,6 +21,16 @@ import Login from './pages/public/Login';
 
 // Advertiser Pages
 import AdvertiserDashboard from './pages/advertiser/Dashboard';
+import AdvertiserBookings from './pages/advertiser/Bookings';
+
+// Owner Pages
+import OwnerDashboard from './pages/owner/Dashboard';
+import OwnerBookings from './pages/owner/Bookings';
+import OwnerAdSpaces from './pages/owner/AdSpaces';
+import OwnerAddAdSpace from './pages/owner/AddAdSpace';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
 
 /**
  * MockPage: A utility component used to render a placeholder page for routes 
@@ -69,7 +79,7 @@ export default function App() {
                     <Route element={<ProtectedRoute allowedRoles={['advertiser']} />}>
                         <Route element={<DashboardLayout />}>
                             <Route path="/advertiser/dashboard" element={<AdvertiserDashboard />} />
-                            <Route path="/advertiser/bookings" element={<MockPage title="My Bookings" />} />
+                            <Route path="/advertiser/bookings" element={<AdvertiserBookings />} />
                             <Route path="/advertiser/campaigns" element={<MockPage title="My Campaigns" />} />
                             <Route path="/advertiser/upload-creative" element={<MockPage title="Upload Creative" />} />
                             <Route path="/advertiser/reports" element={<MockPage title="Campaign Reports" />} />
@@ -84,10 +94,10 @@ export default function App() {
                     */}
                     <Route element={<ProtectedRoute allowedRoles={['owner']} />}>
                         <Route element={<DashboardLayout />}>
-                            <Route path="/owner/dashboard" element={<MockPage title="Owner Dashboard" />} />
-                            <Route path="/owner/adspaces" element={<MockPage title="Manage Ad Spaces" />} />
-                            <Route path="/owner/add-adspace" element={<MockPage title="Add New Ad Space" />} />
-                            <Route path="/owner/bookings" element={<MockPage title="Received Bookings" />} />
+                            <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+                            <Route path="/owner/adspaces" element={<OwnerAdSpaces />} />
+                            <Route path="/owner/add-adspace" element={<OwnerAddAdSpace />} />
+                            <Route path="/owner/bookings" element={<OwnerBookings />} />
                             <Route path="/owner/earnings" element={<MockPage title="Earnings Report" />} />
                             <Route path="/owner/profile" element={<MockPage title="Owner Profile" />} />
                         </Route>
@@ -100,7 +110,7 @@ export default function App() {
                     */}
                     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                         <Route element={<DashboardLayout />}>
-                            <Route path="/admin/dashboard" element={<MockPage title="Admin Dashboard" />} />
+                            <Route path="/admin/dashboard" element={<AdminDashboard />} />
                             <Route path="/admin/users" element={<MockPage title="Manage Users" />} />
                             <Route path="/admin/adspaces" element={<MockPage title="Manage All Ad Spaces" />} />
                             <Route path="/admin/bookings" element={<MockPage title="All Bookings" />} />
