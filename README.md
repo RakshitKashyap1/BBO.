@@ -58,33 +58,87 @@ We leverage modern technologies to ensure speed, security, and the ability to ha
 
 ---
 
-## 🚀 Getting Started (Go from zero to Hero)
+## 🚀 Quick Start (One-Click Setup)
+
+We've automated the boring stuff. If you're on **Windows**, run the PowerShell script. If you're on **macOS/Linux**, use the bash script.
+
+### For Windows Users (PowerShell)
+```powershell
+./setup.ps1
+```
+
+### For Unix/Linux/macOS Users (Bash)
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+---
+
+## 🛠️ Manual Setup
+
+If you prefer to do things by hand (we respect that), follow these steps:
 
 **Prerequisites:** [Node.js](https://nodejs.org/) and [Python 3.10+](https://python.org) installed.
 
-1.  **Clone the Beast**
+### 1. Clone the Beast
+```bash
+git clone https://github.com/RakshitKashyap1/BillBoardOrganiser.git
+cd BillBoardOrganiser
+```
 
-    ```bash
-    git clone https://github.com/RakshitKashyap1/BillBoardOrganiser.git
-    cd BillBoardOrganiser
-    ```
+### 2. Frontend Power-Up
+```bash
+# Copy environment variables
+cp .env.example .env
 
-2.  **Frontend Power-Up**
+# Install and run
+npm install
+npm run dev
+```
 
-    ```bash
-    npm install
-    npm run dev
-    ```
+### 3. Backend Brain-Transfer
+```bash
+cd backend
 
-3.  **Backend Brain-Transfer**
-    ```bash
-    cd backend
-    python -m venv venv
-    ./venv/Scripts/Activate.ps1 # Or 'source venv/bin/activate' on Mac/Linux
-    pip install -r requirements.txt
-    python manage.py migrate
-    python manage.py runserver
-    ```
+# Copy environment variables
+cp .env.example .env
+
+# Create virtual environment
+python -m venv venv
+./venv/Scripts/Activate.ps1 # Or 'source venv/bin/activate' on Mac/Linux
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations and start server
+python manage.py migrate
+python manage.py runserver
+```
+
+---
+
+## 📁 Project Structure
+
+Navigating a new codebase can be like finding a specific billboard in a storm. Here's your map:
+
+```text
+.
+├── backend/            # Django REST Backend
+│   ├── api/            # Versioned API logic (v1)
+│   ├── apps/           # Core Django apps (users, ads, bookings)
+│   ├── bbo_backend/    # Main Django settings/config
+│   └── requirements.txt # Python dependencies
+├── src/                # React Frontend
+│   ├── components/     # UI components (Neo-Brutalist inspired)
+│   ├── pages/          # Full page views
+│   ├── services/       # API clients and business logic
+│   └── styles/         # Custom Neo-Brutalist CSS
+├── public/             # Static assets (images, fonts)
+├── setup.ps1           # Windows automation script
+├── setup.sh            # Unix automation script
+└── .env.example        # Environment variable templates
+```
 
 ---
 
