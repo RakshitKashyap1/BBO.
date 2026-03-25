@@ -12,6 +12,10 @@ import { AuthProvider } from './context/AuthContext';
 import PublicLayout from './layouts/PublicLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
+import Spinner from './components/common/Spinner';
+import api from './services/api';
+import { User, Layers, Calendar, CreditCard, PieChart } from 'lucide-react';
 
 // Pages to import - Actual page content components
 import Home from './pages/public/Home';
@@ -46,6 +50,58 @@ const MockPage = ({ title }) => (
     </div>
 );
 
+// Generic Data Manager for formerly MockPages
+const DataDashboard = ({ title, icon: Icon, endpoint, columns }) => {
+    const [data, setData] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
+
+    React.useEffect(() => {
+        const fetch = async () => {
+            try {
+                const res = await api.get(endpoint);
+                setData(res.data.results || res.data);
+            } catch (err) {
+                setError(`Failed to load ${title.toLowerCase()}`);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetch();
+    }, [endpoint, title]);
+
+    if (loading) return <div className="h-full flex items-center justify-center"><Spinner size="lg" /></div>;
+    if (error) return <div className="card border-danger text-danger p-8 text-center"><h2>Error</h2><p>{error}</p></div>;
+
+    return (
+        <div className="animate-fade-in">
+            <div className="flex items-center gap-4 mb-8">
+                <div className="stat-icon"><Icon size={24} /></div>
+                <h1 className="m-0">{title}</h1>
+            </div>
+            
+            <div className="table-container">
+                <table>
+                    <thead>
+                        <tr>{columns.map(c => <th key={c.key}>{c.label}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                        {data.length === 0 ? (
+                            <tr><td colSpan={columns.length} className="text-center py-8">No records found</td></tr>
+                        ) : (
+                            data.map((row, i) => (
+                                <tr key={row.id || i}>
+                                    {columns.map(c => <td key={c.key}>{c.render ? c.render(row) : row[c.key]}</td>)}
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+};
+
 /**
  * App: The root React component.
  * It manages:
@@ -56,6 +112,7 @@ const MockPage = ({ title }) => (
 export default function App() {
     return (
         <AuthProvider>
+            <Toaster position="top-right" />
             <BrowserRouter>
                 <Routes>
                     {/* 
@@ -111,10 +168,59 @@ export default function App() {
                     <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
                         <Route element={<DashboardLayout />}>
                             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                            <Route path="/admin/users" element={<MockPage title="Manage Users" />} />
-                            <Route path="/admin/adspaces" element={<MockPage title="Manage All Ad Spaces" />} />
-                            <Route path="/admin/bookings" element={<MockPage title="All Bookings" />} />
-                            <Route path="/admin/payments" element={<MockPage title="Payments Control" />} />
+                            <Route path="/admin/users" element={
+                                <DataDashboard 
+                                    title="Platform Users" 
+                                    icon={User} 
+                                    endpoint="/users/" 
+                                    columns={[
+                                        { key: 'id', label: 'ID' },
+                                        { key: 'name', label: 'Name' },
+                                        { key: 'email', label: 'Email' },
+                                        { key: 'role', label: 'Role', render: (u) => <span className={`badge ${u.role === 'admin' ? 'badge-primary' : u.role === 'owner' ? 'badge-warning' : 'badge-info'}`}>{u.role}</span> }
+                                    ]}
+                                />
+                            } />
+                            <Route path="/admin/adspaces" element={
+                                <DataDashboard 
+                                    title="Global Ad Spaces" 
+                                    icon={Layers} 
+                                    endpoint="/adspaces/" 
+                                    columns={[
+                                        { key: 'title', label: 'Billboard' },
+                                        { key: 'city', label: 'City' },
+                                        { key: 'basePricePerDay', label: 'Price/Day', render: (a) => `$${a.basePricePerDay}` },
+                                        { key: 'availabilityStatus', label: 'Status', render: (a) => <span className={`badge ${a.availabilityStatus === 'available' ? 'badge-success' : 'badge-warning'}`}>{a.availabilityStatus}</span> }
+                                    ]}
+                                />
+                            } />
+                            <Route path="/admin/bookings" element={
+                                <DataDashboard 
+                                    title="System Bookings" 
+                                    icon={Calendar} 
+                                    endpoint="/bookings/" 
+                                    columns={[
+                                        { key: 'id', label: 'Ref' },
+                                        { key: 'startDate', label: 'Starts' },
+                                        { key: 'endDate', label: 'Ends' },
+                                        { key: 'totalPrice', label: 'Total', render: (b) => `$${b.totalPrice}` },
+                                        { key: 'status', label: 'Status', render: (b) => <span className={`badge ${b.status === 'active' ? 'badge-success' : 'badge-warning'}`}>{b.status}</span> }
+                                    ]}
+                                />
+                            } />
+                            <Route path="/admin/payments" element={
+                                <DataDashboard 
+                                    title="Payment Transactions" 
+                                    icon={CreditCard} 
+                                    endpoint="/payments/" 
+                                    columns={[
+                                        { key: 'id', label: 'ID' },
+                                        { key: 'amount', label: 'Amount', render: (p) => `$${p.amount}` },
+                                        { key: 'payment_method', label: 'Method' },
+                                        { key: 'status', label: 'Status', render: (p) => <span className={`badge ${p.status === 'successful' ? 'badge-success' : 'badge-warning'}`}>{p.status}</span> }
+                                    ]}
+                                />
+                            } />
                             <Route path="/admin/reports" element={<MockPage title="System Reports" />} />
                         </Route>
                     </Route>

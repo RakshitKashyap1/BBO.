@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { Layout, MapPin, DollarSign, ArrowLeft, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Spinner from '../../components/common/Spinner';
 
 export default function AddAdSpace() {
     const navigate = useNavigate();
@@ -26,10 +28,12 @@ export default function AddAdSpace() {
         setIsLoading(true);
         try {
             await api.post('/adspaces/', formData);
+            toast.success("Ad space listed successfully!");
             navigate('/owner/adspaces');
         } catch (error) {
             console.error("Failed to add ad space:", error);
-            alert("Error adding ad space. Please check your inputs.");
+            const errorMsg = error.response?.data?.error || "Error adding ad space. Please check your inputs.";
+            toast.error(errorMsg);
         } finally {
             setIsLoading(false);
         }
@@ -153,7 +157,7 @@ export default function AddAdSpace() {
                     <div className="mt-8 flex justify-end gap-4 border-t pt-8" style={{ borderTop: '1px solid var(--border)' }}>
                         <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary">Cancel</button>
                         <button type="submit" className="btn btn-primary px-8 flex items-center gap-2" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : 'List Space'}
+                            {isLoading ? <Spinner size="sm" color="white" /> : 'List Space'}
                         </button>
                     </div>
                 </form>

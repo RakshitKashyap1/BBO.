@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Monitor, User, Megaphone, ShieldCheck, Lock, Mail } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Spinner from '../../components/common/Spinner';
 
 export default function Login() {
     const { login } = useAuth();
@@ -36,11 +38,13 @@ export default function Login() {
         const result = await login(email, password);
 
         if (result.success) {
+            toast.success(`Successfully logged in as ${role}`);
             if (role === 'advertiser') navigate('/advertiser/dashboard');
             else if (role === 'owner') navigate('/owner/dashboard');
             else navigate('/admin/dashboard');
         } else {
             setError(result.error);
+            toast.error(result.error || "Login failed");
         }
         setIsLoading(false);
     };
@@ -140,7 +144,7 @@ export default function Login() {
                     </div>
 
                     <button type="submit" className="btn btn-primary w-full" style={{ padding: '0.875rem' }} disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In'}
+                        {isLoading ? <Spinner size="sm" color="white" /> : 'Sign In'}
                     </button>
                 </form>
             </div>

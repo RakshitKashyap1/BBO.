@@ -9,6 +9,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { MapPin, Calendar, CheckCircle2, ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
+import Spinner from '../../components/common/Spinner';
 
 export default function AdDetails() {
     const { id } = useParams();
@@ -46,16 +48,19 @@ export default function AdDetails() {
         try {
             await api.post('/bookings/', {
                 adspace: id,
-                start_date: startDate,
-                end_date: endDate
+                startDate: startDate,
+                endDate: endDate
             });
             setSuccess(true);
+            toast.success("Booking created successfully!");
             setTimeout(() => {
                 navigate('/advertiser/bookings');
-            }, 2000);
+            }, 1500);
         } catch (err) {
             console.error("Booking failed:", err);
-            setError(err.response?.data?.detail || "Failed to create booking. Please try again.");
+            const errorMsg = err.response?.data?.details?.non_field_errors?.[0] || err.response?.data?.error || "Failed to create booking. Please try again.";
+            setError(errorMsg);
+            toast.error(errorMsg);
         } finally {
             setIsBooking(false);
         }
@@ -73,7 +78,7 @@ export default function AdDetails() {
     if (isLoading) {
         return (
             <div className="container py-20 flex flex-col items-center justify-center gap-4">
-                <Loader2 size={40} className="animate-spin text-primary" />
+                <Spinner size="lg" />
                 <p>Loading details...</p>
             </div>
         );
@@ -227,7 +232,7 @@ export default function AdDetails() {
                                     disabled={!startDate || !endDate || isBooking || success}
                                     onClick={handleBook}
                                 >
-                                    {isBooking ? <Loader2 size={18} className="animate-spin" /> : 'Confirm & Pay'}
+                                    {isBooking ? <Spinner size="sm" color="white" /> : 'Confirm & Pay'}
                                 </button>
                             ) : (
                                 <button className="btn w-full" style={{ background: 'var(--bg-panel-hover)', color: 'var(--text-muted)', cursor: 'not-allowed' }} disabled>

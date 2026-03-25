@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import { TrendingUp, Layout, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import { TrendingUp, Layout, Clock, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import Spinner from '../../components/common/Spinner';
 
 export default function OwnerDashboard() {
     const { user } = useAuth();
@@ -14,47 +16,53 @@ export default function OwnerDashboard() {
     });
     const [recentBookings, setRecentBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(null);
+
+    const fetchDashboardData = async () => {
+        try {
+            const [spacesRes, bookingsRes] = await Promise.all([
+                api.get('/adspaces/?mine=true'),
+                api.get('/bookings/')
+            ]);
+
+            const mySpaces = spacesRes.data.results || spacesRes.data;
+            const myBookings = bookingsRes.data.results || bookingsRes.data;
+
+            const pending = myBookings.filter(b => b.status === 'pending').length;
+            const active = myBookings.filter(b => b.status === 'active').length;
+            const earnings = myBookings
+                .filter(b => b.status === 'completed' || b.status === 'active')
+                .reduce((acc, b) => acc + parseFloat(b.totalPrice), 0);
+
+            setStats({
+                totalSpaces: mySpaces.length,
+                pendingBookings: pending,
+                activeBookings: active,
+                totalEarnings: earnings
+            });
+            setRecentBookings(myBookings.slice(0, 5));
+        } catch (error) {
+            console.error("Error fetching owner dashboard data:", error);
+            toast.error("Failed to load dashboard statistics.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const [spacesRes, bookingsRes] = await Promise.all([
-                    api.get('/adspaces/?mine=true'),
-                    api.get('/bookings/')
-                ]);
-
-                const mySpaces = spacesRes.data.results || spacesRes.data;
-                const myBookings = bookingsRes.data.results || bookingsRes.data;
-
-                const pending = myBookings.filter(b => b.status === 'pending').length;
-                const active = myBookings.filter(b => b.status === 'active').length;
-                const earnings = myBookings
-                    .filter(b => b.status === 'completed' || b.status === 'active')
-                    .reduce((acc, b) => acc + parseFloat(b.totalPrice), 0);
-
-                setStats({
-                    totalSpaces: mySpaces.length,
-                    pendingBookings: pending,
-                    activeBookings: active,
-                    totalEarnings: earnings
-                });
-                setRecentBookings(myBookings.slice(0, 5));
-            } catch (error) {
-                console.error("Error fetching owner dashboard data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchDashboardData();
     }, []);
 
     const handleApprove = async (id) => {
+        setIsProcessing(id);
         try {
             await api.put(`/bookings/${id}/approve/`);
-            // Refresh data
-            window.location.reload();
+            toast.success("Booking request approved!");
+            await fetchDashboardData();
         } catch (error) {
-            alert("Failed to approve booking");
+            toast.error("Failed to approve booking. Please try again.");
+        } finally {
+            setIsProcessing(null);
         }
     };
 
@@ -114,7 +122,7 @@ export default function OwnerDashboard() {
 
                 {isLoading ? (
                     <div className="flex justify-center py-10">
-                        <Loader2 className="animate-spin text-primary" size={32} />
+                        <Spinner size="md" />
                     </div>
                 ) : (
                     <div className="table-container">
@@ -153,8 +161,9 @@ export default function OwnerDashboard() {
                                                     onClick={() => handleApprove(booking.id)}
                                                     className="btn btn-primary" 
                                                     style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
+                                                    disabled={isProcessing === booking.id}
                                                 >
-                                                    Approve
+                                                    {isProcessing === booking.id ? <Spinner size="sm" color="white" /> : 'Approve'}
                                                 </button>
                                             )}
                                         </td>
