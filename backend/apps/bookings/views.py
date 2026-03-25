@@ -34,12 +34,11 @@ class BookingViewSet(viewsets.ModelViewSet):
         return Booking.objects.filter(advertiser=user)
 
     def perform_create(self, serializer):
-        """
-        Custom Create Logic:
-        1. Extract date range and target billboard.
-        2. Call Pricing Engine service for dynamic cost calculation.
-        3. Save the booking tied to the current user as 'pending'.
-        """
+        # Role Check: Only Advertisers or Admins can book
+        if self.request.user.role not in ['advertiser', 'admin']:
+             from rest_framework.exceptions import PermissionDenied
+             raise PermissionDenied("Only advertisers can book ad spaces.")
+             
         adspace = serializer.validated_data['adspace']
         start_date = serializer.validated_data['start_date']
         end_date = serializer.validated_data['end_date']

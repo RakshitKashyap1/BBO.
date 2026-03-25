@@ -1,17 +1,15 @@
 from rest_framework import views, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAdminUser
 from bookings.models import Booking
 from adspaces.models import AdSpace
 from users.models import CustomUser
 
 class AdminReportView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get(self, request):
-        if request.user.role != 'admin':
-            return Response({"detail": "Not authorized."}, status=status.HTTP_403_FORBIDDEN)
-            
         total_bookings = Booking.objects.count()
         total_adspaces = AdSpace.objects.count()
         users_count = CustomUser.objects.count()

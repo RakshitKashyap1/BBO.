@@ -17,4 +17,8 @@ class AdSpaceViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        # Additional role check: Only owners/admins can host ad spaces
+        if self.request.user.role not in ['owner', 'admin']:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only media owners or admins can create ad spaces.")
         serializer.save(owner=self.request.user)
