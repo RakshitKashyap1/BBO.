@@ -1,4 +1,4 @@
-# Contributing to BBO. (Billboard Organiser) 🏙️
+# Contributing to BBO (Billboard Organiser) 🏙️
 
 Welcome, billboard aficionado! We're thrilled that you want to help us make BBO. even more spectacular. Here are some guidelines to help you get started.
 

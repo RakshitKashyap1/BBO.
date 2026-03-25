@@ -1,4 +1,4 @@
-# 🏙️ Billboard Organiser (BBO.) - The "Where Did I Put That Giant Sign?" Manager
+# 🏙️ Billboard Organiser (BBO) - The "Where Did I Put That Giant Sign?" Manager
 
 ![BBO Banner](./bbo_banner_1772393168934.png)
 
