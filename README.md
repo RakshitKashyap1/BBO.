@@ -75,6 +75,62 @@ chmod +x setup.sh
 
 ---
 
+## 🌩️ Cloud Database Setup (Supabase)
+
+If you're moving beyond `localhost` and want to use a hosted database like **Supabase**, follow these steps:
+
+### 1. Create a Project
+- Sign up at [Supabase](https://supabase.com/).
+- Create a new project.
+- Navigate to **Project Settings > Database**.
+
+### 2. Get Connection Details
+You'll need the following info from your Supabase dashboard:
+- **Host**: `db.xxxx.supabase.co` (or use the Connection Pooling host for high-volume apps).
+- **Port**: `6543` (usually for Transaction pooling).
+- **Database Name**: `postgres` (default).
+- **User**: `postgres.xxxxxxx` (your unique project ID).
+- **Password**: The password you set during project creation.
+
+### 3. Update your `.env`
+In your `backend/.env` file, update the following fields:
+```env
+DB_NAME=postgres
+DB_USER=postgres.xxxxxxxxxxxxxxxxxxxx
+DB_PASSWORD=your_secure_password
+DB_HOST=aws-0-xxxx-xxxx-xxxx.pooler.supabase.com
+DB_PORT=6543
+```
+*Alternatively, you can provide a single `DB_URL` string if you prefer:*
+```env
+DB_URL=postgresql://postgres.xxxx:your_pass@db.xxxx.supabase.co:5432/postgres
+```
+
+### 4. Apply Migrations & Seed
+Once connected, run:
+```bash
+# Apply schema
+python manage.py migrate
+
+# Seed with Indian billboard data (Optional, but recommended)
+python manage.py shell -c "import seed_db; seed_db.seed_data()"
+# OR simply
+python seed_db.py
+```
+
+---
+
+## 🔐 Security & Best Practices
+
+To keep the "Organiser" in BBO. organized and *secure*:
+
+1. **Never commit `.env` files**: Our `.gitignore` is pre-configured to skip these. If you accidentally commit one, rotate your secrets immediately!
+2. **Environment Templates**: Always update `.env.example` if you add new variables so other devs know what to configure.
+3. **Database Secrets**: Use a strong password for your Supabase instance. Avoid using default passwords like `admin123`.
+4. **JWT Security**: The `DJANGO_SECRET_KEY` is currently set to a default for local development. For production, generate a long, random string.
+
+---
+
 ## 🛠️ Manual Setup
 
 If you prefer to do things by hand (we respect that), follow these steps:
@@ -137,7 +193,7 @@ Navigating a new codebase can be like finding a specific billboard in a storm. H
 ├── public/             # Static assets (images, fonts)
 ├── setup.ps1           # Windows automation script
 ├── setup.sh            # Unix automation script
-└── .env.example        # Environment variable templates
+├── .env.example        # Environment variable templates
 ```
 
 ---
@@ -163,3 +219,4 @@ BBO. isn't just another corporate dashboard with soft shadows and pastel colors.
 ---
 
 _Built with passion and too much coffee for the future of Out-Of-Home advertising._ 🌃
+

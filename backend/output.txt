@@ -1,0 +1,86 @@
+Starting India-Specific Database Seeding...
+Traceback (most recent call last):
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 279, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\postgresql\base.py", line 333, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.xdxwmpcxbhsfvwdvxyvu.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "s:\GitHubCloneRepos\BBO\backend\seed_db.py", line 178, in <module>
+    seed_data()
+    ~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\seed_db.py", line 38, in seed_data
+    owner, created = User.objects.get_or_create(
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        email=data['email'],
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        }
+        ^
+    )
+    ^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\query.py", line 987, in get_or_create
+    return self.get(**kwargs), False
+           ~~~~~~~~^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\query.py", line 635, in get
+    num = len(clone)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\query.py", line 372, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\query.py", line 2000, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\query.py", line 95, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\models\sql\compiler.py", line 1622, in execute_sql
+    cursor = self.connection.cursor()
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 320, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 296, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 278, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\utils.py", line 94, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 279, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\base\base.py", line 256, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\django\db\backends\postgresql\base.py", line 333, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "s:\GitHubCloneRepos\BBO\backend\venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.xdxwmpcxbhsfvwdvxyvu.supabase.co" to address: Name or service not known
+

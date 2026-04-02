@@ -66,6 +66,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'bbo_backend.wsgi.application'
 
+import environ
+env = environ.Env()
+
 if 'test' in sys.argv:
     DATABASES = {
         'default': {
@@ -74,16 +77,28 @@ if 'test' in sys.argv:
         }
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'postgres'),
-            'USER': os.getenv('DB_USER', 'postgres'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+    # Use DB_URL if provided (preferred for Supabase connection strings)
+    # Example format: postgres://user:password@host:port/dbname
+    db_url = os.getenv('DB_URL')
+    if db_url:
+        DATABASES = {
+            'default': env.db_url('DB_URL')
         }
-    }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.getenv('DB_NAME', 'postgres'),
+                'USER': os.getenv('DB_USER', 'postgres'),
+                'PASSWORD': os.getenv('DB_PASSWORD', ''),
+                'HOST': os.getenv('DB_HOST', 'localhost'),
+                'PORT': os.getenv('DB_PORT', '5432'),
+                'OPTIONS': {
+                    'connect_timeout': 10,
+                }
+            }
+        }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -193,3 +208,4 @@ LOGGING = {
         },
     },
 }
+

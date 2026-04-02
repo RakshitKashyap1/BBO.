@@ -59,3 +59,5 @@ backend/check.txt
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+/src/generated/prisma

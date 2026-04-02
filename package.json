@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.0",
+    "prisma": "^6.19.2",
     "vite": "^5.0.0"
   }
 }
